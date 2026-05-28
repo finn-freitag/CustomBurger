@@ -34,7 +34,7 @@ This creates a CustomBurger with the chosen ingredients.
 
 This project is licensed under the MIT License. See [LICENSE](/LICENSE) for details.
 
-The burger item implementation is based on the Farmer's Delight mod by vectorwing:
+The burger item texture is copied from the Farmer's Delight mod by vectorwing:
 - https://github.com/vectorwing/FarmersDelight
 - https://github.com/vectorwing
 
