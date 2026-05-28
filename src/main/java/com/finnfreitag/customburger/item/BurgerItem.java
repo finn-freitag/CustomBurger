@@ -1,5 +1,6 @@
 package com.finnfreitag.customburger.item;
 
+import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -39,6 +40,7 @@ public class BurgerItem extends Item {
                     ItemStack remainder = ingredientCopy.getItem().finishUsingItem(ingredientCopy, level, entity);
 
                     if (!remainder.isEmpty()
+                            && Config.dropRemainders
                             && remainder.getItem() != ingredientCopy.getItem()
                             && entity instanceof Player player) {
                         if (!player.getInventory().add(remainder)) {

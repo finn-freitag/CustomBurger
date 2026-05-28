@@ -16,14 +16,20 @@ public class Config {
             BUILDER.comment("Allow potions to be used as burger ingredients")
                     .define("allowPotionIngredients", false);
 
+    private static final ModConfigSpec.BooleanValue DROP_REMAINDERS =
+            BUILDER.comment("Drop container remainders like bowls or bottles")
+                    .define("dropRemainders", true);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean enableLogging;
     public static boolean allowPotionIngredients;
+    public static boolean dropRemainders;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         enableLogging = ENABLE_LOGGING.get();
         allowPotionIngredients = ALLOW_POTION_INGREDIENTS.get();
+        dropRemainders = DROP_REMAINDERS.get();
     }
 }
