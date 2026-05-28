@@ -97,7 +97,24 @@ public class BurgerRecipe extends CustomRecipe {
         int width = input.width();
         for (int col = 0; col < width; col++) {
             ItemStack mid = input.getItem(1 * width + col);
-            if (!mid.isEmpty() && mid.get(DataComponents.FOOD) != null) {
+            if (mid.isEmpty()) {
+                continue;
+            }
+            if (mid.is(Customburger.BURGER.get())) {
+                List<ItemStack> nestedContents = mid.get(Customburger.BURGER_CONTENTS.get());
+                if (nestedContents != null && !nestedContents.isEmpty()) {
+                    for (ItemStack nested : nestedContents) {
+                        if (nested.isEmpty()) {
+                            continue;
+                        }
+                        ItemStack ingredientCopy = nested.copy();
+                        ingredientCopy.setCount(1);
+                        internalIngredients.add(ingredientCopy);
+                    }
+                    continue;
+                }
+            }
+            if (mid.get(DataComponents.FOOD) != null) {
                 ItemStack ingredientCopy = mid.copy();
                 ingredientCopy.setCount(1);
                 internalIngredients.add(ingredientCopy);
