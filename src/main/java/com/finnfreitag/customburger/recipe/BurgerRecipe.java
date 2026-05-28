@@ -152,6 +152,7 @@ public class BurgerRecipe extends CustomRecipe {
         }
         return stack.is(Items.POTION)
                 || stack.is(Items.SPLASH_POTION)
-                || stack.is(Items.LINGERING_POTION);
+                || stack.is(Items.LINGERING_POTION)
+                || stack.is(Items.MILK_BUCKET);
     }
 }
