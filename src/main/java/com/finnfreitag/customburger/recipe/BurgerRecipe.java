@@ -29,49 +29,56 @@ public class BurgerRecipe extends CustomRecipe {
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        Customburger.LOGGER.info("Checking burger recipe match...");
         int width = input.width();
         int height = input.height();
 
-        boolean hasAny = false;
-        for (int i = 0; i < width * height; i++) {
-            if (!input.getItem(i).isEmpty()) {
-                hasAny = true;
-                break;
+        if (height != 3 || width < 1) {
+            return false;
+        }
+
+        int bunColumn = -1;
+        for (int col = 0; col < width; col++) {
+            ItemStack top = input.getItem(col);
+            if (top.isEmpty()) {
+                continue;
             }
+            if (!top.is(Items.BREAD)) {
+                return false;
+            }
+            if (bunColumn != -1) {
+                return false;
+            }
+            bunColumn = col;
         }
 
-        if (!hasAny || width != 3 || height != 3) {
+        if (bunColumn == -1) {
             return false;
         }
 
-        ItemStack topLeft = input.getItem(0 * width + 0);
-        ItemStack topCenter = input.getItem(0 * width + 1);
-        ItemStack topRight = input.getItem(0 * width + 2);
-
-        ItemStack midLeft = input.getItem(1 * width + 0);
-        ItemStack midCenter = input.getItem(1 * width + 1);
-        ItemStack midRight = input.getItem(1 * width + 2);
-
-        ItemStack botLeft = input.getItem(2 * width + 0);
-        ItemStack botCenter = input.getItem(2 * width + 1);
-        ItemStack botRight = input.getItem(2 * width + 2);
-
-        if (!topLeft.isEmpty() || !topRight.isEmpty()) {
-            return false;
+        boolean bottomFound = false;
+        for (int col = 0; col < width; col++) {
+            ItemStack bottom = input.getItem(2 * width + col);
+            if (bottom.isEmpty()) {
+                continue;
+            }
+            if (!bottom.is(Items.BREAD) || col != bunColumn) {
+                return false;
+            }
+            if (bottomFound) {
+                return false;
+            }
+            bottomFound = true;
         }
-        if (!botLeft.isEmpty() || !botRight.isEmpty()) {
-            return false;
-        }
-        if (!topCenter.is(Items.BREAD) || !botCenter.is(Items.BREAD)) {
+
+        if (!bottomFound) {
             return false;
         }
 
         int foodCount = 0;
-        for (ItemStack mid : List.of(midLeft, midCenter, midRight)) {
-            if (mid.isEmpty()) continue;
-            if (mid.is(Items.BREAD)) {
-                return false;
+        for (int col = 0; col < width; col++) {
+            ItemStack mid = input.getItem(1 * width + col);
+            if (mid.isEmpty()) {
+                continue;
             }
             if (mid.get(DataComponents.FOOD) == null) {
                 return false;
@@ -88,9 +95,9 @@ public class BurgerRecipe extends CustomRecipe {
         List<ItemStack> internalIngredients = new ArrayList<>();
 
         int width = input.width();
-        for (int col = 0; col < 3; col++) {
+        for (int col = 0; col < width; col++) {
             ItemStack mid = input.getItem(1 * width + col);
-            if (!mid.isEmpty() && mid.get(DataComponents.FOOD) != null && !mid.is(Items.BREAD)) {
+            if (!mid.isEmpty() && mid.get(DataComponents.FOOD) != null) {
                 ItemStack ingredientCopy = mid.copy();
                 ingredientCopy.setCount(1);
                 internalIngredients.add(ingredientCopy);
