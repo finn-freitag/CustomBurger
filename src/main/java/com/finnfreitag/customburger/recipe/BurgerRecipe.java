@@ -80,7 +80,7 @@ public class BurgerRecipe extends CustomRecipe {
             if (mid.isEmpty()) {
                 continue;
             }
-            if (mid.get(DataComponents.FOOD) == null) {
+            if (!isAllowedIngredient(mid)) {
                 return false;
             }
             foodCount++;
@@ -114,7 +114,7 @@ public class BurgerRecipe extends CustomRecipe {
                     continue;
                 }
             }
-            if (mid.get(DataComponents.FOOD) != null) {
+            if (isAllowedIngredient(mid)) {
                 ItemStack ingredientCopy = mid.copy();
                 ingredientCopy.setCount(1);
                 internalIngredients.add(ingredientCopy);
@@ -141,5 +141,17 @@ public class BurgerRecipe extends CustomRecipe {
     @Override
     public net.minecraft.world.item.crafting.RecipeType<?> getType() {
         return net.minecraft.world.item.crafting.RecipeType.CRAFTING;
+    }
+
+    private boolean isAllowedIngredient(ItemStack stack) {
+        if (stack.get(DataComponents.FOOD) != null) {
+            return true;
+        }
+        if (!Config.allowPotionIngredients) {
+            return false;
+        }
+        return stack.is(Items.POTION)
+                || stack.is(Items.SPLASH_POTION)
+                || stack.is(Items.LINGERING_POTION);
     }
 }

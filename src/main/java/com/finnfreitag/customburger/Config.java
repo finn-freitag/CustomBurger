@@ -12,12 +12,18 @@ public class Config {
     private static final ModConfigSpec.BooleanValue ENABLE_LOGGING =
             BUILDER.comment("Enable Customburger logging").define("enableLogging", true);
 
+    private static final ModConfigSpec.BooleanValue ALLOW_POTION_INGREDIENTS =
+            BUILDER.comment("Allow potions to be used as burger ingredients")
+                    .define("allowPotionIngredients", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean enableLogging;
+    public static boolean allowPotionIngredients;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         enableLogging = ENABLE_LOGGING.get();
+        allowPotionIngredients = ALLOW_POTION_INGREDIENTS.get();
     }
 }

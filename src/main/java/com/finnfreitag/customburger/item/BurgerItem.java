@@ -38,7 +38,9 @@ public class BurgerItem extends Item {
 
                     ItemStack remainder = ingredientCopy.getItem().finishUsingItem(ingredientCopy, level, entity);
 
-                    if (!remainder.isEmpty() && entity instanceof Player player) {
+                    if (!remainder.isEmpty()
+                            && remainder.getItem() != ingredientCopy.getItem()
+                            && entity instanceof Player player) {
                         if (!player.getInventory().add(remainder)) {
                             player.drop(remainder, false);
                         }
