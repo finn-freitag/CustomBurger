@@ -10,7 +10,7 @@ public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     private static final ModConfigSpec.BooleanValue ENABLE_LOGGING =
-            BUILDER.comment("Enable Customburger logging").define("enableLogging", true);
+            BUILDER.comment("Enable Customburger logging").define("enableLogging", false);
 
     private static final ModConfigSpec.BooleanValue ALLOW_POTION_INGREDIENTS =
             BUILDER.comment("Allow potions to be used as burger ingredients")
