@@ -27,10 +27,10 @@ public class BurgerItem extends Item {
     @Override
     public ItemStack finishUsingItem(ItemStack stack, Level level, LivingEntity entity) {
         if (!level.isClientSide) {
-            List<ItemStack> contents = stack.get(Customburger.BURGER_CONTENTS.get());
+            BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
             if (contents != null) {
                 // Apply each ingredient's consumption effects and return any container items.
-                for (ItemStack ingredient : contents) {
+                for (ItemStack ingredient : contents.ingredients()) {
                     if (ingredient.isEmpty()) continue;
 
                     ItemStack ingredientCopy = ingredient.copy();
@@ -53,10 +53,10 @@ public class BurgerItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipLines, TooltipFlag tooltipFlag) {
-        List<ItemStack> contents = stack.get(Customburger.BURGER_CONTENTS.get());
-        if (contents != null && !contents.isEmpty()) {
+        BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
+        if (contents != null && !contents.ingredients().isEmpty()) {
             tooltipLines.add(Component.literal("Ingredients:").withStyle(ChatFormatting.GRAY));
-            for (ItemStack ingredient : contents) {
+            for (ItemStack ingredient : contents.ingredients()) {
                 tooltipLines.add(Component.literal("- ")
                         .append(ingredient.getHoverName())
                         .withStyle(ChatFormatting.GREEN));

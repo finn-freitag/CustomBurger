@@ -1,5 +1,6 @@
 package com.finnfreitag.customburger;
 
+import com.finnfreitag.customburger.item.BurgerContents;
 import com.finnfreitag.customburger.item.BurgerItem;
 import com.finnfreitag.customburger.recipe.BurgerRecipe;
 import com.finnfreitag.customburger.recipe.BurgerRecipeSerializer;
@@ -29,11 +30,12 @@ public class Customburger {
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPES =
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, MODID);
 
-    public static final Supplier<DataComponentType<List<ItemStack>>> BURGER_CONTENTS =
-            DATA_COMPONENT_TYPES.register("burger_contents", () -> DataComponentType.<List<ItemStack>>builder()
-                    .persistent(ItemStack.CODEC.listOf())
-                    .networkSynchronized(ItemStack.LIST_STREAM_CODEC)
-                    .build());
+    public static final Supplier<DataComponentType<BurgerContents>> BURGER_CONTENTS =
+            DATA_COMPONENT_TYPES.register("burger_contents", () ->
+                    DataComponentType.<BurgerContents>builder()
+                            .persistent(BurgerContents.CODEC)
+                            .networkSynchronized(BurgerContents.STREAM_CODEC)
+                            .build());
 
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
             DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);

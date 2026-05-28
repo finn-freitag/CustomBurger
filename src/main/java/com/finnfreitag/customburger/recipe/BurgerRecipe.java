@@ -2,6 +2,7 @@ package com.finnfreitag.customburger.recipe;
 
 import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
+import com.finnfreitag.customburger.item.BurgerContents;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
@@ -101,9 +102,9 @@ public class BurgerRecipe extends CustomRecipe {
                 continue;
             }
             if (mid.is(Customburger.BURGER.get())) {
-                List<ItemStack> nestedContents = mid.get(Customburger.BURGER_CONTENTS.get());
-                if (nestedContents != null && !nestedContents.isEmpty()) {
-                    for (ItemStack nested : nestedContents) {
+                BurgerContents nestedContents = mid.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
+                if (nestedContents != null && !nestedContents.ingredients().isEmpty()) {
+                    for (ItemStack nested : nestedContents.ingredients()) {
                         if (nested.isEmpty()) {
                             continue;
                         }
@@ -121,7 +122,7 @@ public class BurgerRecipe extends CustomRecipe {
             }
         }
 
-        burgerResult.set(Customburger.BURGER_CONTENTS.get(), internalIngredients);
+        burgerResult.set(Customburger.BURGER_CONTENTS.get(), new BurgerContents(internalIngredients));
         if (Config.enableLogging) {
             Customburger.LOGGER.info("Crafted burger with {} ingredients", internalIngredients.size());
         }
