@@ -1,6 +1,6 @@
 # CustomBurger
 
-CustomBurger lets you combine multiple food items into a single burger so you can get all their effects at once. It started as a fun idea to craft a real burger with vegetables, but the real reason was more practical: on my modded server I automated several food sources from different mods that grant special effects or trigger actions when eaten. Eating each item one by one was tedious, so this mod lets you pack them into one burger and consume them together.
+CustomBurger lets you combine multiple food items into a single burger so you can get all their effects at once. It started as a fun idea to craft a real burger with vegetables, but it's also practical: on my modded server I automated several food sources from different mods that grant special effects or trigger actions when eaten. Eating each item one by one was tedious, so this mod lets you pack them into one burger and consume them together.
 
 <img src="/images/img1.png" alt="CustomBurger example">
 
@@ -33,12 +33,6 @@ This creates a CustomBurger with the chosen ingredients.
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](/LICENSE) for details.
-
-The burger item texture is copied from the Farmer's Delight mod by vectorwing:
-- https://github.com/vectorwing/FarmersDelight
-- https://github.com/vectorwing
-
-It is also published under the MIT License.
 
 ## Contributing
 
