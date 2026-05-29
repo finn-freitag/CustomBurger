@@ -41,6 +41,7 @@ public class BurgerItem extends Item {
 
                     if (!remainder.isEmpty()
                             && Config.dropRemainders
+                            && Config.dropRemaindersOnEat
                             && remainder.getItem() != ingredientCopy.getItem()
                             && entity instanceof Player player) {
                         if (!player.getInventory().add(remainder)) {

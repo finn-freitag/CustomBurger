@@ -3,20 +3,33 @@ package com.finnfreitag.customburger.recipe;
 import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
 import com.finnfreitag.customburger.item.BurgerContents;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.util.FakePlayer;
+import net.neoforged.neoforge.common.util.FakePlayerFactory;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class BurgerRecipe extends CustomRecipe {
+    private static final GameProfile REMAINDER_PROFILE = new GameProfile(
+            UUID.nameUUIDFromBytes("customburger_remainders".getBytes(StandardCharsets.UTF_8)),
+            "[CustomBurger]"
+    );
     private final CraftingBookCategory category;
 
     public BurgerRecipe(CraftingBookCategory category) {
@@ -130,6 +143,31 @@ public class BurgerRecipe extends CustomRecipe {
     }
 
     @Override
+    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
+        return getRemainingItemsInternal(input);
+    }
+
+    private NonNullList<ItemStack> getRemainingItemsInternal(CraftingInput input) {
+        NonNullList<ItemStack> remainders = NonNullList.withSize(input.size(), ItemStack.EMPTY);
+        if (!Config.dropRemainders || Config.dropRemaindersOnEat) {
+            return remainders;
+        }
+
+        for (int i = 0; i < input.size(); i++) {
+            ItemStack stack = input.getItem(i);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ItemStack remainder = getRemainderForCrafting(stack);
+            if (!remainder.isEmpty()) {
+                remainders.set(i, remainder);
+            }
+        }
+
+        return remainders;
+    }
+
+    @Override
     public boolean canCraftInDimensions(int width, int height) {
         return width >= 3 && height >= 3;
     }
@@ -142,6 +180,45 @@ public class BurgerRecipe extends CustomRecipe {
     @Override
     public net.minecraft.world.item.crafting.RecipeType<?> getType() {
         return net.minecraft.world.item.crafting.RecipeType.CRAFTING;
+    }
+
+    private ItemStack getRemainderForCrafting(ItemStack stack) {
+        if (stack.is(Items.POTION)
+                || stack.is(Items.SPLASH_POTION)
+                || stack.is(Items.LINGERING_POTION)) {
+            return new ItemStack(Items.GLASS_BOTTLE);
+        }
+        if (stack.is(Items.MILK_BUCKET)) {
+            return new ItemStack(Items.BUCKET);
+        }
+        ItemStack craftingRemainder = stack.getCraftingRemainingItem();
+        if (!craftingRemainder.isEmpty()) {
+            return craftingRemainder;
+        }
+        if (stack.get(DataComponents.FOOD) != null) {
+            return getEatRemainder(stack);
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private ItemStack getEatRemainder(ItemStack stack) {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) {
+            return ItemStack.EMPTY;
+        }
+        ServerLevel level = server.overworld();
+        if (level == null) {
+            return ItemStack.EMPTY;
+        }
+        FakePlayer fakePlayer = FakePlayerFactory.get(level, REMAINDER_PROFILE);
+        ItemStack copy = stack.copy();
+        copy.setCount(1);
+        ItemStack result = copy.getItem().finishUsingItem(copy, level, fakePlayer);
+        if (result.isEmpty() || result.getItem() == stack.getItem()) {
+            return ItemStack.EMPTY;
+        }
+        result.setCount(1);
+        return result;
     }
 
     private boolean isAllowedIngredient(ItemStack stack) {

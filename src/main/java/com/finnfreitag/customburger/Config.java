@@ -20,16 +20,22 @@ public class Config {
             BUILDER.comment("Drop container remainders like bowls or bottles")
                     .define("dropRemainders", true);
 
+    private static final ModConfigSpec.BooleanValue DROP_REMAINDERS_ON_EAT =
+            BUILDER.comment("Drop container remainders when eating (if false, remainders stay in the crafting grid)")
+                    .define("dropRemaindersOnEat", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean enableLogging;
     public static boolean allowPotionIngredients;
     public static boolean dropRemainders;
+    public static boolean dropRemaindersOnEat;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
         enableLogging = ENABLE_LOGGING.get();
         allowPotionIngredients = ALLOW_POTION_INGREDIENTS.get();
         dropRemainders = DROP_REMAINDERS.get();
+        dropRemaindersOnEat = DROP_REMAINDERS_ON_EAT.get();
     }
 }
