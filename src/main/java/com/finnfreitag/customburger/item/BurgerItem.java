@@ -4,6 +4,7 @@ import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
@@ -12,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BurgerItem extends Item {
@@ -59,10 +61,25 @@ public class BurgerItem extends Item {
         BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
         if (contents != null && !contents.ingredients().isEmpty()) {
             tooltipLines.add(Component.literal("Ingredients:").withStyle(ChatFormatting.GRAY));
+            ArrayList<Tuple<String, Integer>> ingredientCounts = new ArrayList<>();
             for (ItemStack ingredient : contents.ingredients()) {
-                tooltipLines.add(Component.literal("- ")
-                        .append(ingredient.getHoverName())
-                        .withStyle(ChatFormatting.GREEN));
+                if (ingredient.isEmpty()) continue;
+
+                String ingredientName = ingredient.getHoverName().getString();
+                boolean found = false;
+                for (Tuple<String, Integer> ingredientCount : ingredientCounts) {
+                    if (ingredientCount.getA().equals(ingredientName)) {
+                        ingredientCount.setB(ingredientCount.getB() + 1);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    ingredientCounts.add(new Tuple<>(ingredientName, 1));
+                }
+            }
+            for (Tuple<String, Integer> ingredientCount : ingredientCounts) {
+                tooltipLines.add(Component.literal("- " + (ingredientCount.getB() > 1 ? ingredientCount.getB() + "x " : "") + ingredientCount.getA()).withStyle(ChatFormatting.GREEN));
             }
         } else {
             tooltipLines.add(Component.literal("Plain Bun").withStyle(ChatFormatting.RED));
