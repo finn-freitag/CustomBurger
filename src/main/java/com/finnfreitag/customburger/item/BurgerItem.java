@@ -60,7 +60,7 @@ public class BurgerItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipLines, TooltipFlag tooltipFlag) {
         BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
         if (contents != null && !contents.ingredients().isEmpty()) {
-            tooltipLines.add(Component.literal("Ingredients:").withStyle(ChatFormatting.GRAY));
+            tooltipLines.add(Component.translatable("item.customburger.burger.tooltip").withStyle(ChatFormatting.GRAY));
             ArrayList<Tuple<String, Integer>> ingredientCounts = new ArrayList<>();
             for (ItemStack ingredient : contents.ingredients()) {
                 if (ingredient.isEmpty()) continue;
