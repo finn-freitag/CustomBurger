@@ -7,17 +7,15 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.*;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 import java.nio.charset.StandardCharsets;
@@ -25,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class BurgerRecipe extends CustomRecipe {
+public class BurgerRecipe extends CustomRecipe implements CraftingRecipe {
     private static final GameProfile REMAINDER_PROFILE = new GameProfile(
             UUID.nameUUIDFromBytes("customburger_remainders".getBytes(StandardCharsets.UTF_8)),
             "[CustomBurger]"
@@ -180,6 +178,57 @@ public class BurgerRecipe extends CustomRecipe {
     @Override
     public net.minecraft.world.item.crafting.RecipeType<?> getType() {
         return net.minecraft.world.item.crafting.RecipeType.CRAFTING;
+    }
+
+    @Override
+    public ItemStack getToastSymbol() {
+        return new ItemStack(Customburger.BURGER.get());
+    }
+
+    @Override
+    public boolean isSpecial() {
+        return false;
+    }
+
+    @Override
+    public NonNullList<Ingredient> getIngredients() {
+        NonNullList<Ingredient> list = NonNullList.create();
+
+        List<ItemStack> foodItems = BuiltInRegistries.ITEM.stream()
+                .filter(item -> new ItemStack(item).get(DataComponents.FOOD) != null)
+                .map(ItemStack::new)
+                .toList();
+
+        List<ItemStack> middleItems = new ArrayList<>(foodItems);
+        if (Config.allowPotionIngredients) {
+            middleItems.add(new ItemStack(Items.POTION));
+            middleItems.add(new ItemStack(Items.SPLASH_POTION));
+            middleItems.add(new ItemStack(Items.LINGERING_POTION));
+            middleItems.add(new ItemStack(Items.MILK_BUCKET));
+        }
+
+        Ingredient filling = Ingredient.of(middleItems.stream());
+        Ingredient bread = Ingredient.of(Items.BREAD);
+
+        // Row 0: [empty, bread, empty]  — bun on top, center column
+        list.add(Ingredient.EMPTY);
+        list.add(bread);
+        list.add(Ingredient.EMPTY);
+        // Row 1: [filling, filling, filling] — up to 3 fillings across all columns
+        list.add(filling);
+        list.add(filling);
+        list.add(filling);
+        // Row 2: [empty, bread, empty]  — bun on bottom, same center column
+        list.add(Ingredient.EMPTY);
+        list.add(bread);
+        list.add(Ingredient.EMPTY);
+
+        return list;
+    }
+
+    @Override
+    public ItemStack getResultItem(HolderLookup.Provider registries) {
+        return new ItemStack(Customburger.BURGER.get());
     }
 
     private ItemStack getRemainderForCrafting(ItemStack stack) {

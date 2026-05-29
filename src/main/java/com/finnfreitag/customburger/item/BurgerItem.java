@@ -82,7 +82,7 @@ public class BurgerItem extends Item {
                 tooltipLines.add(Component.literal("- " + (ingredientCount.getB() > 1 ? ingredientCount.getB() + "x " : "") + ingredientCount.getA()).withStyle(ChatFormatting.GREEN));
             }
         } else {
-            tooltipLines.add(Component.literal("Plain Bun").withStyle(ChatFormatting.RED));
+            //tooltipLines.add(Component.literal("Plain Bun").withStyle(ChatFormatting.RED));
         }
         super.appendHoverText(stack, context, tooltipLines, tooltipFlag);
     }
