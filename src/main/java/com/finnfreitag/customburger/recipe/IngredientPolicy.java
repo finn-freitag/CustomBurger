@@ -13,7 +13,8 @@ import java.util.List;
 public class IngredientPolicy {
     public boolean isAllowedIngredient(ItemStack stack) {
         if (stack.get(DataComponents.FOOD) != null) {
-            return !stack.is(Items.BREAD);
+            return true;
+            //return !stack.is(Items.BREAD); // Only for recipe viewer to prevent display bugs (see createFillingItemStacks), but allow bread as an ingredient in actual crafting since it doesn't cause any issues there
         }
         if (!Config.allowPotionIngredients) {
             return false;
