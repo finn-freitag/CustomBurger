@@ -1,3 +1,5 @@
 {
-  "item.customburger.burger": "Selbstbelegter Burger"
+  "item.customburger.burger": "Selbstbelegter Burger",
+  "item.customburger.burger.tooltip": "Zutaten:",
+  "jei.customburger.burger.description": "Lege ein Brot in das obere und eins in das untere mittlere Feld. Fülle die mittlere Reihem it 1 bis 3 Essensitems."
 }

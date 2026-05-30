@@ -2,6 +2,7 @@ package com.finnfreitag.customburger.item;
 
 import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
+import com.finnfreitag.customburger.recipe.RemainderResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
@@ -36,15 +37,14 @@ public class BurgerItem extends Item {
                 for (ItemStack ingredient : contents.ingredients()) {
                     if (ingredient.isEmpty()) continue;
 
-                    ItemStack ingredientCopy = ingredient.copy();
-                    ingredientCopy.setCount(1);
+                    ItemStack effectsCopy = ingredient.copy();
+                    effectsCopy.setCount(1);
+                    effectsCopy.getItem().finishUsingItem(effectsCopy, level, entity);
 
-                    ItemStack remainder = ingredientCopy.getItem().finishUsingItem(ingredientCopy, level, entity);
-
+                    ItemStack remainder = RemainderResolver.getRemainder(ingredient);
                     if (!remainder.isEmpty()
                             && Config.dropRemainders
                             && Config.dropRemaindersOnEat
-                            && remainder.getItem() != ingredientCopy.getItem()
                             && entity instanceof Player player) {
                         if (!player.getInventory().add(remainder)) {
                             player.drop(remainder, false);
@@ -60,7 +60,7 @@ public class BurgerItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipLines, TooltipFlag tooltipFlag) {
         BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
         if (contents != null && !contents.ingredients().isEmpty()) {
-            tooltipLines.add(Component.literal("Ingredients:").withStyle(ChatFormatting.GRAY));
+            tooltipLines.add(Component.translatable("item.customburger.burger.tooltip").withStyle(ChatFormatting.GRAY));
             ArrayList<Tuple<String, Integer>> ingredientCounts = new ArrayList<>();
             for (ItemStack ingredient : contents.ingredients()) {
                 if (ingredient.isEmpty()) continue;
@@ -82,7 +82,7 @@ public class BurgerItem extends Item {
                 tooltipLines.add(Component.literal("- " + (ingredientCount.getB() > 1 ? ingredientCount.getB() + "x " : "") + ingredientCount.getA()).withStyle(ChatFormatting.GREEN));
             }
         } else {
-            tooltipLines.add(Component.literal("Plain Bun").withStyle(ChatFormatting.RED));
+            //tooltipLines.add(Component.literal("Plain Bun").withStyle(ChatFormatting.RED));
         }
         super.appendHoverText(stack, context, tooltipLines, tooltipFlag);
     }

@@ -1,3 +1,5 @@
 {
-  "item.customburger.burger": "Custom Burger"
+  "item.customburger.burger": "Custom Burger",
+  "item.customburger.burger.tooltip": "Ingredients:",
+  "jei.customburger.burger.description": "Place bread on top and bottom in the center column. Fill 1 to 3 middle slots with any food items."
 }

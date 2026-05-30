@@ -7,6 +7,8 @@ import com.finnfreitag.customburger.recipe.BurgerRecipeSerializer;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -46,12 +48,27 @@ public class Customburger {
     public static final Supplier<Item> BURGER = ITEMS.register("burger",
             () -> new BurgerItem(new Item.Properties()));
 
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+
+    public static final Supplier<CreativeModeTab> BURGER_TAB =
+            CREATIVE_TABS.register("burger_tab", () ->
+                    CreativeModeTab.builder()
+                            .title(Component.translatable("itemGroup.customburger"))
+                            .icon(() -> new ItemStack(BURGER.get()))
+                            .displayItems((params, output) -> {
+                                output.accept(BURGER.get());
+                            })
+                            .build()
+            );
+
     public Customburger(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
 
         ITEMS.register(modEventBus);
         DATA_COMPONENT_TYPES.register(modEventBus);
         RECIPE_SERIALIZERS.register(modEventBus);
+        CREATIVE_TABS.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
