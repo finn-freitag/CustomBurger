@@ -4,6 +4,7 @@ import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
 import com.finnfreitag.customburger.recipe.RemainderResolver;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,8 +15,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class BurgerItem extends Item {
     public BurgerItem(Properties properties) {
@@ -53,13 +56,23 @@ public class BurgerItem extends Item {
                 }
             }
         }
-        return super.finishUsingItem(stack, level, entity);
+        // Don't call super — vanilla would apply FoodProperties-based hunger/effects,
+        // which we've already handled ingredient by ingredient above.
+        // Just shrink the stack and return the remainder as super does:
+        stack.consume(1, entity);
+        return stack;
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipLines, TooltipFlag tooltipFlag) {
         BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
         if (contents != null && !contents.ingredients().isEmpty()) {
+            // Patch the FOOD component so FD's ItemTooltipEvent sees real values.
+            // This runs before FD's event handler reads the component.
+            // NOTE: ItemStack.set() on a client-side tooltip call does NOT sync to server.
+            FoodProperties aggregate = buildAggregateFoodProperties(contents);
+            stack.set(DataComponents.FOOD, aggregate);
+
             tooltipLines.add(Component.translatable("item.customburger.burger.tooltip").withStyle(ChatFormatting.GRAY));
             ArrayList<Tuple<String, Integer>> ingredientCounts = new ArrayList<>();
             for (ItemStack ingredient : contents.ingredients()) {
@@ -85,5 +98,49 @@ public class BurgerItem extends Item {
             //tooltipLines.add(Component.literal("Plain Bun").withStyle(ChatFormatting.RED));
         }
         super.appendHoverText(stack, context, tooltipLines, tooltipFlag);
+    }
+
+    @Override
+    @Nullable
+    public FoodProperties getFoodProperties(ItemStack stack, @Nullable LivingEntity entity) {
+        BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
+        if (contents.ingredients().isEmpty()) {
+            // Plain burger — return the base zero-nutrition food so it's still edible
+            return super.getFoodProperties(stack, entity);
+        }
+        return buildAggregateFoodProperties(contents);
+    }
+
+    public static FoodProperties buildAggregateFoodProperties(BurgerContents contents) {
+        int totalNutrition = 0;
+        float totalSaturation = 0.0f;
+        List<FoodProperties.PossibleEffect> allEffects = new ArrayList<>();
+
+        for (ItemStack ingredient : contents.ingredients()) {
+            if (ingredient.isEmpty()) continue;
+            FoodProperties fp = ingredient.get(DataComponents.FOOD);
+            if (fp == null) continue;
+            totalNutrition += fp.nutrition();
+            // Vanilla saturation is stored as a modifier; effective saturation = nutrition * modifier * 2
+            // To combine correctly, accumulate the *effective* saturation points then back-convert later.
+            // Simplest correct approach: sum effective saturation (hunger * satMod * 2), convert at end.
+            totalSaturation += fp.nutrition() * fp.saturation() * 2.0f;
+            allEffects.addAll(fp.effects());
+        }
+
+        // Back-convert total effective saturation to a modifier relative to the combined nutrition.
+        // If totalNutrition is 0 (all non-food ingredients), avoid division by zero.
+        float saturationModifier = (totalNutrition > 0)
+                ? (totalSaturation / (totalNutrition * 2.0f))
+                : 0.0f;
+
+        return new FoodProperties(
+                totalNutrition,
+                saturationModifier,
+                true,           // alwaysEdible — keep consistent with original burger
+                1.6f,           // eatSeconds — standard value
+                Optional.empty(),
+                allEffects
+        );
     }
 }
