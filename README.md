@@ -30,6 +30,9 @@ This creates a CustomBurger with the chosen ingredients.
 - You can put burgers into burgers to bundle even more effects.
 - In the mod configuration file, you can allow potions and milk buckets as ingredients (disabled by default).
 
+## Download
+You can download the latest version of CustomBurger from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/customburger) or directly download it from the Github release.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](/LICENSE) for details.
