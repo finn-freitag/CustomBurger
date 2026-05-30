@@ -195,7 +195,7 @@ public class BurgerRecipe extends CustomRecipe implements CraftingRecipe {
         NonNullList<Ingredient> list = NonNullList.create();
 
         List<ItemStack> foodItems = BuiltInRegistries.ITEM.stream()
-                .filter(item -> new ItemStack(item).get(DataComponents.FOOD) != null)
+                .filter(item -> item != Items.BREAD && new ItemStack(item).get(DataComponents.FOOD) != null)
                 .map(ItemStack::new)
                 .toList();
 
@@ -215,9 +215,9 @@ public class BurgerRecipe extends CustomRecipe implements CraftingRecipe {
         list.add(bread);
         list.add(Ingredient.EMPTY);
         // Row 1: [filling, filling, filling] — up to 3 fillings across all columns
+        list.add(Ingredient.EMPTY);
         list.add(filling);
-        list.add(filling);
-        list.add(filling);
+        list.add(Ingredient.EMPTY);
         // Row 2: [empty, bread, empty]  — bun on bottom, same center column
         list.add(Ingredient.EMPTY);
         list.add(bread);
