@@ -54,7 +54,7 @@ public class Customburger {
     public static final Supplier<CreativeModeTab> BURGER_TAB =
             CREATIVE_TABS.register("burger_tab", () ->
                     CreativeModeTab.builder()
-                            .title(Component.translatable("itemGroup.customburger"))
+                            .title(Component.literal("CustomBurger"))
                             .icon(() -> new ItemStack(BURGER.get()))
                             .displayItems((params, output) -> {
                                 output.accept(BURGER.get());
