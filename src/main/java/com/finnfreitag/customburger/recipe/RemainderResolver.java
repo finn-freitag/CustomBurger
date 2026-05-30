@@ -1,5 +1,6 @@
 package com.finnfreitag.customburger.recipe;
 
+import com.finnfreitag.customburger.Config;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -26,10 +27,8 @@ public final class RemainderResolver {
             return ItemStack.EMPTY;
         }
         ServerLevel level = server.overworld();
-        if (level == null) {
-            return ItemStack.EMPTY;
-        }
         FakePlayer fakePlayer = FakePlayerFactory.get(level, REMAINDER_PROFILE);
+        fakePlayer.setSilent(!Config.enableFakePlayerSounds);
         ItemStack copy = stack.copy();
         copy.setCount(1);
         ItemStack result = copy.getItem().finishUsingItem(copy, level, fakePlayer);

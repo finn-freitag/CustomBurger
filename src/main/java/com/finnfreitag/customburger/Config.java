@@ -24,12 +24,17 @@ public class Config {
             BUILDER.comment("Drop container remainders when eating (if false, remainders stay in the crafting grid)")
                     .define("dropRemaindersOnEat", false);
 
+    private static final ModConfigSpec.BooleanValue FAKEPLAYER_SOUNDS =
+            BUILDER.comment("Allow fake player sounds when resolving ingredient remainders")
+                    .define("enableFakePlayerSounds", false);
+
     static final ModConfigSpec SPEC = BUILDER.build();
 
     public static boolean enableLogging;
     public static boolean allowPotionIngredients;
     public static boolean dropRemainders;
     public static boolean dropRemaindersOnEat;
+    public static boolean enableFakePlayerSounds;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event) {
@@ -37,5 +42,6 @@ public class Config {
         allowPotionIngredients = ALLOW_POTION_INGREDIENTS.get();
         dropRemainders = DROP_REMAINDERS.get();
         dropRemaindersOnEat = DROP_REMAINDERS_ON_EAT.get();
+        enableFakePlayerSounds = FAKEPLAYER_SOUNDS.get();
     }
 }
