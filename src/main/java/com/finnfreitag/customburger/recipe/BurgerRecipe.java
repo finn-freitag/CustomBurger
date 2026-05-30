@@ -191,6 +191,11 @@ public class BurgerRecipe extends CustomRecipe implements CraftingRecipe {
     }
 
     @Override
+    public boolean showNotification() {
+        return true;
+    }
+
+    @Override
     public NonNullList<Ingredient> getIngredients() {
         NonNullList<Ingredient> list = NonNullList.create();
 
