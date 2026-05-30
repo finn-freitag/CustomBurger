@@ -2,6 +2,7 @@ package com.finnfreitag.customburger.item;
 
 import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
+import com.finnfreitag.customburger.recipe.RemainderResolver;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Tuple;
@@ -36,15 +37,14 @@ public class BurgerItem extends Item {
                 for (ItemStack ingredient : contents.ingredients()) {
                     if (ingredient.isEmpty()) continue;
 
-                    ItemStack ingredientCopy = ingredient.copy();
-                    ingredientCopy.setCount(1);
+                    ItemStack effectsCopy = ingredient.copy();
+                    effectsCopy.setCount(1);
+                    effectsCopy.getItem().finishUsingItem(effectsCopy, level, entity);
 
-                    ItemStack remainder = ingredientCopy.getItem().finishUsingItem(ingredientCopy, level, entity);
-
+                    ItemStack remainder = RemainderResolver.getRemainder(ingredient);
                     if (!remainder.isEmpty()
                             && Config.dropRemainders
                             && Config.dropRemaindersOnEat
-                            && remainder.getItem() != ingredientCopy.getItem()
                             && entity instanceof Player player) {
                         if (!player.getInventory().add(remainder)) {
                             player.drop(remainder, false);
