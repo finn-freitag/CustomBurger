@@ -3,8 +3,10 @@ package com.finnfreitag.customburger.recipe;
 import com.finnfreitag.customburger.Config;
 import com.finnfreitag.customburger.Customburger;
 import com.finnfreitag.customburger.item.BurgerContents;
+import com.finnfreitag.customburger.item.BurgerItem;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
@@ -57,7 +59,9 @@ public class BurgerRecipe extends CustomRecipe implements CraftingRecipe {
                 this::getNestedBurgerIngredients
         );
 
-        burgerResult.set(Customburger.BURGER_CONTENTS.get(), new BurgerContents(internalIngredients));
+        BurgerContents contents = new BurgerContents(internalIngredients);
+        burgerResult.set(Customburger.BURGER_CONTENTS.get(), contents);
+        burgerResult.set(DataComponents.FOOD, BurgerItem.buildAggregateFoodProperties(contents));
         if (Config.enableLogging) {
             Customburger.LOGGER.info("Crafted burger with {} ingredients", internalIngredients.size());
         }

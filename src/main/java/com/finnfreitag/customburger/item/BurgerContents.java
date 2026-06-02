@@ -44,9 +44,8 @@ public record BurgerContents(List<ItemStack> ingredients) {
     public int hashCode() {
         int result = 1;
         for (ItemStack stack : ingredients) {
-            // Item identity is a stable hash source; components are harder but this is enough
-            result = 31 * result + stack.getItem().hashCode();
-            result = 31 * result + stack.getCount();
+            result = 31 * result + BuiltInRegistries.ITEM.getId(stack.getItem());
+            result = 31 * result + stack.getComponentsPatch().hashCode();
         }
         return result;
     }

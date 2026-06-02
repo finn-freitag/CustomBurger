@@ -67,12 +67,6 @@ public class BurgerItem extends Item {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipLines, TooltipFlag tooltipFlag) {
         BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
         if (contents != null && !contents.ingredients().isEmpty()) {
-            // Patch the FOOD component so FD's ItemTooltipEvent sees real values.
-            // This runs before FD's event handler reads the component.
-            // NOTE: ItemStack.set() on a client-side tooltip call does NOT sync to server.
-            FoodProperties aggregate = buildAggregateFoodProperties(contents);
-            stack.set(DataComponents.FOOD, aggregate);
-
             tooltipLines.add(Component.translatable("item.customburger.burger.tooltip").withStyle(ChatFormatting.GRAY));
             ArrayList<Tuple<String, Integer>> ingredientCounts = new ArrayList<>();
             for (ItemStack ingredient : contents.ingredients()) {
@@ -114,7 +108,7 @@ public class BurgerItem extends Item {
     public static FoodProperties buildAggregateFoodProperties(BurgerContents contents) {
         int totalNutrition = 0;
         float totalSaturation = 0.0f;
-        List<FoodProperties.PossibleEffect> allEffects = new ArrayList<>();
+        //List<FoodProperties.PossibleEffect> allEffects = new ArrayList<>();
 
         for (ItemStack ingredient : contents.ingredients()) {
             if (ingredient.isEmpty()) continue;
@@ -125,7 +119,7 @@ public class BurgerItem extends Item {
             // To combine correctly, accumulate the *effective* saturation points then back-convert later.
             // Simplest correct approach: sum effective saturation (hunger * satMod * 2), convert at end.
             totalSaturation += fp.nutrition() * fp.saturation() * 2.0f;
-            allEffects.addAll(fp.effects());
+            //allEffects.addAll(fp.effects());
         }
 
         // Back-convert total effective saturation to a modifier relative to the combined nutrition.
@@ -140,7 +134,7 @@ public class BurgerItem extends Item {
                 true,           // alwaysEdible — keep consistent with original burger
                 1.6f,           // eatSeconds — standard value
                 Optional.empty(),
-                allEffects
+                List.of() //allEffects
         );
     }
 }
