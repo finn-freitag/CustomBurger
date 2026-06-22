@@ -39,4 +39,17 @@ public class RecipeManagerMixin {
             this.byType = mutableByType;
         }
     }
+
+    @Inject(method = "replaceRecipes", at = @At("TAIL"))
+    private void onReplaceRecipes(Iterable<RecipeHolder<?>> recipes, CallbackInfo ci) {
+        if (LoadingModList.get().getModFileById("create") != null) {
+            Map<ResourceLocation, RecipeHolder<?>> mutableByName = new java.util.HashMap<>(this.byName);
+            Multimap<RecipeType<?>, RecipeHolder<?>> mutableByType = com.google.common.collect.ArrayListMultimap.create(this.byType);
+            
+            com.finnfreitag.customburger.compat.create.CreateCompat.injectRecipes((RecipeManager) (Object) this, this.registries, mutableByName, mutableByType);
+            
+            this.byName = mutableByName;
+            this.byType = mutableByType;
+        }
+    }
 }

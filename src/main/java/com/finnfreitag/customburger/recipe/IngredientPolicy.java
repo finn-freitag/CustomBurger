@@ -25,6 +25,17 @@ public class IngredientPolicy {
                 || stack.is(Items.MILK_BUCKET);
     }
 
+    public boolean isAllowedSpoutIngredient(ItemStack stack) {
+        boolean isHoney = stack.is(Items.HONEY_BOTTLE);
+        boolean isMilk = stack.is(Items.MILK_BUCKET);
+        boolean isPotion = stack.is(Items.POTION) || stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION);
+        if (!isHoney && !isMilk && !isPotion) {
+            return false;
+        }
+        return isAllowedIngredient(stack);
+    }
+
+
     public Ingredient createFillingIngredient() {
         return Ingredient.of(createFillingItemStacks().stream());
     }

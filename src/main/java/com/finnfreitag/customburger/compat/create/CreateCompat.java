@@ -24,59 +24,125 @@ public class CreateCompat {
         RecipeType<?> fillingType = AllRecipeTypes.FILLING.getType();
         java.util.Collection<RecipeHolder<?>> fillingRecipes = byType.get(fillingType);
         
-        java.util.List<RecipeHolder<?>> newRecipes = new java.util.ArrayList<>();
-        
-        for (RecipeHolder<?> holder : fillingRecipes) {
-            if (holder.value() instanceof FillingRecipe recipe) {
-                if (recipe.getIngredients().isEmpty()) continue;
-                Ingredient itemIng = recipe.getIngredients().get(0);
-                if (itemIng.test(new ItemStack(Items.GLASS_BOTTLE))) {
-                    if (recipe.getFluidIngredients().isEmpty()) continue;
-                    
-                    ResourceLocation originalId = holder.id();
-                    ResourceLocation newId = ResourceLocation.fromNamespaceAndPath(
-                            "customburger", 
-                            "spout_filling/" + originalId.getNamespace() + "/" + originalId.getPath()
-                    );
-                    
-                    ItemStack bottleOutput = recipe.getResultItem(registries);
-                    if (bottleOutput.isEmpty()) continue;
-                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedIngredient(bottleOutput)) continue;
-                    
-                    ItemStack outputBurger = new ItemStack(Customburger.BURGER.get());
-                    
-                    ItemStack bottleIng = bottleOutput.copy();
-                    bottleIng.setCount(1);
-                    bottleIng.set(Customburger.NO_DROP.get(), true);
-                    
-                    BurgerContents newContents = new BurgerContents(java.util.List.of(bottleIng));
-                    outputBurger.set(Customburger.BURGER_CONTENTS.get(), newContents);
-                    outputBurger.set(net.minecraft.core.component.DataComponents.FOOD, 
-                            com.finnfreitag.customburger.item.BurgerItem.buildAggregateFoodProperties(newContents));
-                    
-                    SizedFluidIngredient fluidIng = recipe.getRequiredFluid();
-                    
-                    try {
-                        FillingRecipe burgerRecipe = new StandardProcessingRecipe.Builder<>(FillingRecipe::new, newId)
-                                .withItemIngredients(Ingredient.of(Customburger.BURGER.get()))
-                                .withFluidIngredients(fluidIng)
-                                .withSingleItemOutput(outputBurger)
-                                .build();
-                        
-                        RecipeHolder<FillingRecipe> newHolder = new RecipeHolder<>(newId, burgerRecipe);
-                        newRecipes.add(newHolder);
-                    } catch (Exception e) {
-                        Customburger.LOGGER.error("Failed to build Spout recipe for CustomBurger compatibility: ", e);
+        java.util.List<net.neoforged.neoforge.fluids.FluidStack> collectedFluids = new java.util.ArrayList<>();
+        Customburger.LOGGER.info("CreateCompat: injectRecipes entered. Doing direct fluid lookup.");
+
+        net.minecraft.world.level.material.Fluid honeyFluid = null;
+        net.minecraft.world.level.material.Fluid milkFluid = null;
+        net.minecraft.world.level.material.Fluid potionFluid = null;
+
+        for (java.util.Map.Entry<net.minecraft.resources.ResourceKey<net.minecraft.world.level.material.Fluid>, net.minecraft.world.level.material.Fluid> entry : net.minecraft.core.registries.BuiltInRegistries.FLUID.entrySet()) {
+            ResourceLocation id = entry.getKey().location();
+            String path = id.getPath();
+            String namespace = id.getNamespace();
+            if (namespace.equals("create")) {
+                if (path.contains("honey")) {
+                    honeyFluid = entry.getValue();
+                } else if (path.contains("milk")) {
+                    milkFluid = entry.getValue();
+                } else if (path.contains("potion")) {
+                    potionFluid = entry.getValue();
+                }
+            }
+        }
+
+        Customburger.LOGGER.info("CreateCompat: Direct fluids found: honey={}, milk={}, potion={}", honeyFluid != null, milkFluid != null, potionFluid != null);
+
+        if (com.finnfreitag.customburger.Config.allowPotionIngredients) {
+            collectedFluids.add(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 250));
+            if (milkFluid != null) {
+                collectedFluids.add(new net.neoforged.neoforge.fluids.FluidStack(milkFluid, 250));
+            }
+            if (potionFluid != null) {
+                com.finnfreitag.customburger.recipe.IngredientPolicy policy = new com.finnfreitag.customburger.recipe.IngredientPolicy();
+                for (net.minecraft.world.item.alchemy.Potion potion : net.minecraft.core.registries.BuiltInRegistries.POTION) {
+                    net.minecraft.core.Holder<net.minecraft.world.item.alchemy.Potion> holder =
+                            net.minecraft.core.registries.BuiltInRegistries.POTION.wrapAsHolder(potion);
+
+                    ItemStack potionStack = net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.POTION, holder);
+                    if (policy.isAllowedSpoutIngredient(potionStack)) {
+                        net.minecraft.world.item.alchemy.PotionContents contents = potionStack.get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
+                        if (contents != null) {
+                            net.neoforged.neoforge.fluids.FluidStack stack = new net.neoforged.neoforge.fluids.FluidStack(potionFluid, 250);
+                            stack.set(net.minecraft.core.component.DataComponents.POTION_CONTENTS, contents);
+                            collectedFluids.add(stack);
+                        }
                     }
                 }
             }
         }
-        
-        for (RecipeHolder<?> newHolder : newRecipes) {
-            byName.put(newHolder.id(), newHolder);
-            byType.put(fillingType, newHolder);
+        if (honeyFluid != null) {
+            collectedFluids.add(new net.neoforged.neoforge.fluids.FluidStack(honeyFluid, 250));
         }
         
-        Customburger.LOGGER.info("CustomBurger compat: Injected {} Spout recipes", newRecipes.size());
+        if (!collectedFluids.isEmpty()) {
+            ResourceLocation newId = ResourceLocation.fromNamespaceAndPath("customburger", "spout_filling/burger");
+            
+            try {
+                net.neoforged.neoforge.fluids.crafting.FluidIngredient unionIngredient = 
+                        net.neoforged.neoforge.fluids.crafting.FluidIngredient.of(collectedFluids.toArray(new net.neoforged.neoforge.fluids.FluidStack[0]));
+                SizedFluidIngredient fluidIng = new SizedFluidIngredient(unionIngredient, 250);
+                
+                ItemStack outputBurger = new ItemStack(Customburger.BURGER.get());
+                
+                FillingRecipe burgerRecipe = new StandardProcessingRecipe.Builder<>(FillingRecipe::new, newId)
+                        .withItemIngredients(Ingredient.of(Customburger.BURGER.get()))
+                        .withFluidIngredients(fluidIng)
+                        .withSingleItemOutput(outputBurger)
+                        .build();
+                
+                RecipeHolder<FillingRecipe> newHolder = new RecipeHolder<>(newId, burgerRecipe);
+                
+                byName.put(newHolder.id(), newHolder);
+                byType.put(fillingType, newHolder);
+                
+                Customburger.LOGGER.info("CustomBurger compat: Injected Spout recipe for Burger with {} fluids", collectedFluids.size());
+            } catch (Exception e) {
+                Customburger.LOGGER.error("Failed to build Spout recipe for CustomBurger compatibility: ", e);
+            }
+        }
+    }
+
+    public static java.util.List<ItemStack> getSpoutItems() {
+        java.util.List<ItemStack> items = new java.util.ArrayList<>();
+        com.finnfreitag.customburger.recipe.IngredientPolicy policy = new com.finnfreitag.customburger.recipe.IngredientPolicy();
+
+        // 1. Honey bottle
+        ItemStack honey = new ItemStack(Items.HONEY_BOTTLE);
+        if (policy.isAllowedSpoutIngredient(honey)) {
+            items.add(honey);
+        }
+
+        // 2. Milk bucket
+        ItemStack milk = new ItemStack(Items.MILK_BUCKET);
+        if (policy.isAllowedSpoutIngredient(milk)) {
+            items.add(milk);
+        }
+
+        // 3. Potions
+        if (com.finnfreitag.customburger.Config.allowPotionIngredients) {
+            for (net.minecraft.world.item.alchemy.Potion potion : net.minecraft.core.registries.BuiltInRegistries.POTION) {
+                net.minecraft.core.Holder<net.minecraft.world.item.alchemy.Potion> holder =
+                        net.minecraft.core.registries.BuiltInRegistries.POTION.wrapAsHolder(potion);
+
+                ItemStack potionStack = net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.POTION, holder);
+                if (policy.isAllowedSpoutIngredient(potionStack)) {
+                    items.add(potionStack);
+                }
+
+                ItemStack splashStack = net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.SPLASH_POTION, holder);
+                if (policy.isAllowedSpoutIngredient(splashStack)) {
+                    items.add(splashStack);
+                }
+
+                ItemStack lingeringStack = net.minecraft.world.item.alchemy.PotionContents.createItemStack(Items.LINGERING_POTION, holder);
+                if (policy.isAllowedSpoutIngredient(lingeringStack)) {
+                    items.add(lingeringStack);
+                }
+            }
+        }
+
+        return items;
     }
 }
+

@@ -6,7 +6,8 @@
   "plugin": "com.finnfreitag.customburger.mixin.CustomBurgerMixinConfigPlugin",
   "mixins": [
     "RecipeManagerMixin",
-    "FillingBySpoutMixin"
+    "FillingBySpoutMixin",
+    "SpoutCategoryMixin"
   ],
   "client": [],
   "injectors": {

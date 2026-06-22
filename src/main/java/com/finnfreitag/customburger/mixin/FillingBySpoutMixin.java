@@ -30,7 +30,7 @@ public class FillingBySpoutMixin {
             if (bottleAmount > 0) {
                 ItemStack bottleOutput = GenericItemFilling.fillItem(level, bottleAmount, new ItemStack(Items.GLASS_BOTTLE), fluid.copy());
                 if (!bottleOutput.isEmpty()) {
-                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedIngredient(bottleOutput)) {
+                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedSpoutIngredient(bottleOutput)) {
                         cir.setReturnValue(-1);
                         return;
                     }
@@ -63,7 +63,7 @@ public class FillingBySpoutMixin {
             if (bottleAmount > 0) {
                 ItemStack bottleOutput = GenericItemFilling.fillItem(level, bottleAmount, new ItemStack(Items.GLASS_BOTTLE), fluid.copy());
                 if (!bottleOutput.isEmpty()) {
-                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedIngredient(bottleOutput)) {
+                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedSpoutIngredient(bottleOutput)) {
                         cir.setReturnValue(stack);
                         return;
                     }

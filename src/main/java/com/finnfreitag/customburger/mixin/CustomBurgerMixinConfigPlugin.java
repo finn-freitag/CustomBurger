@@ -20,7 +20,7 @@ public class CustomBurgerMixinConfigPlugin implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if (mixinClassName.endsWith("FillingBySpoutMixin")) {
+        if (mixinClassName.endsWith("FillingBySpoutMixin") || mixinClassName.endsWith("SpoutCategoryMixin")) {
             return LoadingModList.get().getModFileById("create") != null;
         }
         return true;
