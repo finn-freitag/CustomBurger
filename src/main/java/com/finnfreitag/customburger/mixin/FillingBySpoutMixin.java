@@ -26,30 +26,30 @@ public class FillingBySpoutMixin {
     @Inject(method = "getRequiredAmountForItem", at = @At("HEAD"), cancellable = true)
     private static void onGetRequiredAmountForItem(Level level, ItemStack stack, FluidStack fluid, CallbackInfoReturnable<Integer> cir) {
         if (stack.is(Customburger.BURGER.get())) {
-            int bottleAmount = GenericItemFilling.getRequiredAmountForItem(level, new ItemStack(Items.GLASS_BOTTLE), fluid);
-            if (bottleAmount > 0) {
-                ItemStack bottleOutput = GenericItemFilling.fillItem(level, bottleAmount, new ItemStack(Items.GLASS_BOTTLE), fluid.copy());
-                if (!bottleOutput.isEmpty()) {
-                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedSpoutIngredient(bottleOutput)) {
-                        cir.setReturnValue(-1);
-                        return;
-                    }
-                    ItemStack checkStack = bottleOutput.copy();
-                    checkStack.setCount(1);
-                    checkStack.set(Customburger.NO_DROP.get(), true);
+            com.finnfreitag.customburger.compat.create.CreateCompat.SpoutFillingResult result = 
+                    com.finnfreitag.customburger.compat.create.CreateCompat.findFillingResult(level, fluid);
+            if (result != null) {
+                if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedSpoutIngredient(result.output)) {
+                    Customburger.LOGGER.info("  Spout ingredient not allowed: {}", result.output);
+                    cir.setReturnValue(-1);
+                    return;
+                }
+                ItemStack checkStack = result.output.copy();
+                checkStack.setCount(1);
+                checkStack.set(Customburger.NO_DROP.get(), true);
 
-                    BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
-                    boolean alreadyContains = false;
-                    for (ItemStack ingredient : contents.ingredients()) {
-                        if (ItemStack.isSameItemSameComponents(ingredient, checkStack)) {
-                            alreadyContains = true;
-                            break;
-                        }
+                BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
+                boolean alreadyContains = false;
+                for (ItemStack ingredient : contents.ingredients()) {
+                    if (ItemStack.isSameItemSameComponents(ingredient, checkStack)) {
+                        alreadyContains = true;
+                        break;
                     }
-                    if (!alreadyContains) {
-                        cir.setReturnValue(bottleAmount);
-                        return;
-                    }
+                }
+                Customburger.LOGGER.info("  alreadyContains: {}", alreadyContains);
+                if (!alreadyContains) {
+                    cir.setReturnValue(result.amount);
+                    return;
                 }
             }
             cir.setReturnValue(-1);
@@ -59,52 +59,50 @@ public class FillingBySpoutMixin {
     @Inject(method = "fillItem", at = @At("HEAD"), cancellable = true)
     private static void onFillItem(Level level, int amount, ItemStack stack, FluidStack fluid, CallbackInfoReturnable<ItemStack> cir) {
         if (stack.is(Customburger.BURGER.get())) {
-            int bottleAmount = GenericItemFilling.getRequiredAmountForItem(level, new ItemStack(Items.GLASS_BOTTLE), fluid);
-            if (bottleAmount > 0) {
-                ItemStack bottleOutput = GenericItemFilling.fillItem(level, bottleAmount, new ItemStack(Items.GLASS_BOTTLE), fluid.copy());
-                if (!bottleOutput.isEmpty()) {
-                    if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedSpoutIngredient(bottleOutput)) {
-                        cir.setReturnValue(stack);
-                        return;
-                    }
-                    ItemStack checkStack = bottleOutput.copy();
-                    checkStack.setCount(1);
-                    checkStack.set(Customburger.NO_DROP.get(), true);
+            com.finnfreitag.customburger.compat.create.CreateCompat.SpoutFillingResult result = 
+                    com.finnfreitag.customburger.compat.create.CreateCompat.findFillingResult(level, fluid);
+            if (result != null) {
+                if (!new com.finnfreitag.customburger.recipe.IngredientPolicy().isAllowedSpoutIngredient(result.output)) {
+                    cir.setReturnValue(stack);
+                    return;
+                }
+                ItemStack checkStack = result.output.copy();
+                checkStack.setCount(1);
+                checkStack.set(Customburger.NO_DROP.get(), true);
 
-                    BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
-                    
-                    boolean alreadyContains = false;
-                    for (ItemStack ingredient : contents.ingredients()) {
-                        if (ItemStack.isSameItemSameComponents(ingredient, checkStack)) {
-                            alreadyContains = true;
-                            break;
-                        }
+                BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
+                
+                boolean alreadyContains = false;
+                for (ItemStack ingredient : contents.ingredients()) {
+                    if (ItemStack.isSameItemSameComponents(ingredient, checkStack)) {
+                        alreadyContains = true;
+                        break;
                     }
+                }
+                
+                if (!alreadyContains) {
+                    ItemStack bottleIng = result.output.copy();
+                    bottleIng.setCount(1);
+                    bottleIng.set(Customburger.NO_DROP.get(), true);
                     
-                    if (!alreadyContains) {
-                        ItemStack bottleIng = bottleOutput.copy();
-                        bottleIng.setCount(1);
-                        bottleIng.set(Customburger.NO_DROP.get(), true);
-                        
-                        java.util.List<ItemStack> newIngredients = new java.util.ArrayList<>(contents.ingredients());
-                        newIngredients.add(bottleIng);
-                        
-                        BurgerContents newContents = new BurgerContents(newIngredients);
-                        ItemStack newBurger = new ItemStack(Customburger.BURGER.get());
-                        newBurger.set(Customburger.BURGER_CONTENTS.get(), newContents);
-                        
-                        newBurger.applyComponents(stack.getComponentsPatch());
-                        
-                        newBurger.set(Customburger.BURGER_CONTENTS.get(), newContents);
-                        newBurger.set(net.minecraft.core.component.DataComponents.FOOD, 
-                                com.finnfreitag.customburger.item.BurgerItem.buildAggregateFoodProperties(newContents));
-                        
-                        stack.shrink(1);
-                        fluid.shrink(bottleAmount);
-                        
-                        cir.setReturnValue(newBurger);
-                        return;
-                    }
+                    java.util.List<ItemStack> newIngredients = new java.util.ArrayList<>(contents.ingredients());
+                    newIngredients.add(bottleIng);
+                    
+                    BurgerContents newContents = new BurgerContents(newIngredients);
+                    ItemStack newBurger = new ItemStack(Customburger.BURGER.get());
+                    newBurger.set(Customburger.BURGER_CONTENTS.get(), newContents);
+                    
+                    newBurger.applyComponents(stack.getComponentsPatch());
+                    
+                    newBurger.set(Customburger.BURGER_CONTENTS.get(), newContents);
+                    newBurger.set(net.minecraft.core.component.DataComponents.FOOD, 
+                            com.finnfreitag.customburger.item.BurgerItem.buildAggregateFoodProperties(newContents));
+                    
+                    stack.shrink(1);
+                    fluid.shrink(result.amount);
+                    
+                    cir.setReturnValue(newBurger);
+                    return;
                 }
             }
             cir.setReturnValue(stack);
