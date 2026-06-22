@@ -14,6 +14,13 @@ repositories {
         name = "JEI"
         url = "https://maven.blamejared.com"
     }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup "maven.modrinth"
+        }
+    }
 }
 
 base {
@@ -107,6 +114,8 @@ dependencies {
     // runtimeOnly "mezz.jei:jei-${mc_version}-forge:${jei_version}"
     implementation "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+    implementation "maven.modrinth:create:6.0.10+mc1.21.1"
 
     // Example mod dependency using a mod jar from ./libs with a flat dir repository
     // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar

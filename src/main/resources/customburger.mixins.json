@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.finnfreitag.customburger.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "plugin": "com.finnfreitag.customburger.mixin.CustomBurgerMixinConfigPlugin",
+  "mixins": [
+    "RecipeManagerMixin",
+    "FillingBySpoutMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

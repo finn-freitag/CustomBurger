@@ -15,6 +15,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.alchemy.PotionContents;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +49,7 @@ public class BurgerItem extends Item {
 
                     ItemStack remainder = RemainderResolver.getRemainder(ingredient);
                     if (!remainder.isEmpty()
+                            && !ingredient.getOrDefault(Customburger.NO_DROP.get(), false)
                             && Config.dropRemainders
                             && Config.dropRemaindersOnEat
                             && entity instanceof Player player) {
@@ -72,7 +76,7 @@ public class BurgerItem extends Item {
             for (ItemStack ingredient : contents.ingredients()) {
                 if (ingredient.isEmpty()) continue;
 
-                String ingredientName = ingredient.getHoverName().getString();
+                String ingredientName = getIngredientDisplayName(ingredient);
                 boolean found = false;
                 for (Tuple<String, Integer> ingredientCount : ingredientCounts) {
                     if (ingredientCount.getA().equals(ingredientName)) {
@@ -136,5 +140,49 @@ public class BurgerItem extends Item {
                 Optional.empty(),
                 List.of() //allEffects
         );
+    }
+
+    private static String getRomanNumeral(int value) {
+        return switch (value) {
+            case 0 -> "I";
+            case 1 -> "II";
+            case 2 -> "III";
+            case 3 -> "IV";
+            case 4 -> "V";
+            default -> String.valueOf(value + 1);
+        };
+    }
+
+    public static String getIngredientDisplayName(ItemStack ingredient) {
+        String baseName = ingredient.getHoverName().getString();
+        PotionContents potionContents = ingredient.get(DataComponents.POTION_CONTENTS);
+        if (potionContents != null) {
+            int maxAmplifier = 0;
+            int maxDuration = 0;
+            boolean hasEffects = false;
+            boolean isInfinite = false;
+            for (MobEffectInstance effect : potionContents.getAllEffects()) {
+                maxAmplifier = Math.max(maxAmplifier, effect.getAmplifier());
+                maxDuration = Math.max(maxDuration, effect.getDuration());
+                hasEffects = true;
+                if (effect.isInfiniteDuration()) {
+                    isInfinite = true;
+                }
+            }
+            if (hasEffects) {
+                String levelStr = maxAmplifier > 0 ? " " + getRomanNumeral(maxAmplifier) : "";
+                String durationStr;
+                if (isInfinite) {
+                    durationStr = "∞";
+                } else {
+                    int seconds = maxDuration / 20;
+                    int minutes = seconds / 60;
+                    seconds = seconds % 60;
+                    durationStr = String.format("%d:%02d", minutes, seconds);
+                }
+                return baseName + levelStr + " (" + durationStr + ")";
+            }
+        }
+        return baseName;
     }
 }

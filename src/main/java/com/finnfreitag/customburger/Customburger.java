@@ -5,9 +5,12 @@ import com.finnfreitag.customburger.item.BurgerItem;
 import com.finnfreitag.customburger.recipe.BurgerRecipe;
 import com.finnfreitag.customburger.recipe.BurgerRecipeSerializer;
 import com.mojang.logging.LogUtils;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,6 +40,13 @@ public class Customburger {
                     DataComponentType.<BurgerContents>builder()
                             .persistent(BurgerContents.CODEC)
                             .networkSynchronized(BurgerContents.STREAM_CODEC)
+                            .build());
+
+    public static final Supplier<DataComponentType<Boolean>> NO_DROP =
+            DATA_COMPONENT_TYPES.register("no_drop", () ->
+                    DataComponentType.<Boolean>builder()
+                            .persistent(Codec.BOOL)
+                            .networkSynchronized(ByteBufCodecs.BOOL)
                             .build());
 
     public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS =
