@@ -23,6 +23,18 @@ public class FillingBySpoutMixin {
         }
     }
 
+    private static boolean isSameIngredientIgnoringNoDrop(ItemStack a, ItemStack b) {
+        if (!a.is(b.getItem())) {
+            return false;
+        }
+        net.minecraft.world.item.alchemy.PotionContents aPotion = a.get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
+        net.minecraft.world.item.alchemy.PotionContents bPotion = b.get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
+        if (aPotion != null || bPotion != null) {
+            return java.util.Objects.equals(aPotion, bPotion);
+        }
+        return true;
+    }
+
     @Inject(method = "getRequiredAmountForItem", at = @At("HEAD"), cancellable = true)
     private static void onGetRequiredAmountForItem(Level level, ItemStack stack, FluidStack fluid, CallbackInfoReturnable<Integer> cir) {
         if (stack.is(Customburger.BURGER.get())) {
@@ -41,7 +53,7 @@ public class FillingBySpoutMixin {
                 BurgerContents contents = stack.getOrDefault(Customburger.BURGER_CONTENTS.get(), BurgerContents.EMPTY);
                 boolean alreadyContains = false;
                 for (ItemStack ingredient : contents.ingredients()) {
-                    if (ItemStack.isSameItemSameComponents(ingredient, checkStack)) {
+                    if (isSameIngredientIgnoringNoDrop(ingredient, checkStack)) {
                         alreadyContains = true;
                         break;
                     }
@@ -74,7 +86,7 @@ public class FillingBySpoutMixin {
                 
                 boolean alreadyContains = false;
                 for (ItemStack ingredient : contents.ingredients()) {
-                    if (ItemStack.isSameItemSameComponents(ingredient, checkStack)) {
+                    if (isSameIngredientIgnoringNoDrop(ingredient, checkStack)) {
                         alreadyContains = true;
                         break;
                     }

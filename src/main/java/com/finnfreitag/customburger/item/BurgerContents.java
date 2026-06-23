@@ -15,7 +15,8 @@ public record BurgerContents(List<ItemStack> ingredients) {
     // Canonical constructor — defensive copy + immutability
     public BurgerContents(List<ItemStack> ingredients) {
         this.ingredients = ingredients.stream()
-                .sorted(Comparator.comparing(stack -> BuiltInRegistries.ITEM.getKey(stack.getItem()).toString()))
+                .sorted(Comparator.comparing((ItemStack stack) -> BuiltInRegistries.ITEM.getKey(stack.getItem()).toString())
+                        .thenComparing(stack -> stack.getComponentsPatch().toString()))
                 .collect(Collectors.toUnmodifiableList());
     }
 
